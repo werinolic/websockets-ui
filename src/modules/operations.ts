@@ -1,11 +1,10 @@
 import {
   registration
 } from "./registration.js";
+import {Operations} from "./@types.js";
 
 
-export const operations: {[key in string ]: {
-  func: Function
-  }} = {
+export const operations: Operations = {
   reg: {
     func: registration
   },

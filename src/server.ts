@@ -1,7 +1,8 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import * as http from 'node:http';
+import { readFile } from 'node:fs';
+import {dirname, join } from 'node:path';
+import { createServer } from 'node:http';
 import {fileURLToPath} from "node:url";
+
 import { WebSocketServer } from 'ws';
 
 import {router} from './router.js';
@@ -13,15 +14,15 @@ wss.on('connection', function connection(ws) {
 
     ws.on('message', async (data) => {
         const message = JSON.parse(data.toString());
-        const response = await router(message);
+        const response: string = await router(message);
         if(response !== undefined) ws.send(response);
     });
 });
 
-export const httpServer = http.createServer(function (req, res) {
-    const dirname = path.dirname(fileURLToPath(import.meta.url));
-    const file_path = path.join(dirname, '../', (req.url === '/' ? '/front/index.html' : '/front' + req.url));
-    fs.readFile(file_path, function (err, data) {
+export const httpServer = createServer(function (req, res) {
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+    const file_path = join(__dirname, '../', (req.url === '/' ? '/front/index.html' : '/front' + req.url));
+    readFile(file_path, function (err, data) {
         if (err) {
             res.writeHead(404);
             res.end(JSON.stringify(err));

@@ -1,19 +1,15 @@
 import { operations } from './modules/operations.js'
 
-const isTypeValid = (type: string) => {
-  return type === 'reg'
-}
-
-export const router = async (message: {type: string; data: string, id: 0}) => {
-
-  if (isTypeValid(message.type)) {
-    console.log("call", message.type)
+export const router = async (message: {type: string; data: string, id: 0}): Promise<string> => {
+  console.log("call", message.type)
+  if (operations[message.type] !== undefined) {
     const data = operations[message.type].func(message.data)
-
     return JSON.stringify({
       type: message.type,
       data: JSON.stringify(data),
       id: 0,
     });
+  } else {
+    return ''
   }
 }
