@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 import {Store, User, Room, Game, Ship} from "./@types.js";
 
@@ -24,7 +24,7 @@ export const store = ((defaultStore) => {
 
   const createRoom = (user: User) => {
     const room: Room ={
-      roomId: uuidv4(),
+      roomId: randomUUID(),
       isAvailable: true,
       roomUsers: [{name: user.name, index: user.index}]
     }
@@ -58,14 +58,14 @@ export const store = ((defaultStore) => {
 
     if(user1 !== undefined && user2 !== undefined) {
       const game: Game = {
-        idGame: uuidv4(),
+        idGame: randomUUID(),
         players: [{
-          idPlayer:uuidv4(),
+          idPlayer: randomUUID(),
           user: user1,
           ships: []
         },
         {
-          idPlayer:uuidv4(),
+          idPlayer: randomUUID(),
           user: user2,
           ships: [],
         }],
@@ -76,14 +76,23 @@ export const store = ((defaultStore) => {
     return null;
   }
 
-  const addShips = (dameId: string, ships: Array<Ship>) => {
+  const addShips = (user: User, dameId: string, ships: Array<Ship>) => {
     store.games = store.games.map(game => {
       if(game.idGame !== dameId) {
         return game;
       } else {
-
+        const players = game.players.map( player => {
+          return player.user.name === user.name ? { ...player, ships} :player;
+        })
+        return { ...game, players }
       }
     });
+  }
+
+  const getActiveUserGame = (user: User): Game | undefined => {
+    return store.games.find(game => {
+      return (game.players.length === 2 && game.players.find(player => player.user.name === user.name))
+    })
   }
 
   return {
@@ -95,5 +104,6 @@ export const store = ((defaultStore) => {
     addUserToTheRoom,
     createGame,
     addShips,
+    getActiveUserGame,
   }
 })(defaultStore)

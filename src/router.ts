@@ -9,34 +9,33 @@ export const router = async (sessionUser: User | null, message: {type: string; d
   }
 
   if (operation !== undefined) {
-    const { user, data, users }:  OperationResponse = operation.func(sessionUser, message.data)
-    response.user = user
+    const operations: Array<OperationResponse & {type: string}> = [];
+    const operationResult: Array<OperationResponse> = operation.func(sessionUser, message.data);
+    operations.push(...operationResult
+        .filter(operation => operation.data !== null)
+        .map(i => ({...i, type: operation.type}))
+    );
+
 
     if(operation.triggers.length !== 0) {
       operation.triggers.forEach(trigger => {
-        const { data, users}:  OperationResponse = trigger.func(sessionUser);
-        if (trigger.response) {
-          const newMessages: Array<Message> = data.map(i => ({
-            type: trigger.type,
-            broadcast: trigger.broadcast,
-            data: JSON.stringify(i),
-            users: users,
-            id: 0,
-          }));
-          response.messages = [...response.messages, ...newMessages]
-        }
+        const triggerOperationResult: Array<OperationResponse> = trigger.func(sessionUser);
+        operations.push(...triggerOperationResult
+            .filter(operation => operation.data !== null)
+            .map(i => ({...i, type: trigger.type}))
+        );
       })
     }
-    if(operation.response) {
-      const newMessages: Array<Message> = data.map(i => ({
-        type: message.type,
-        broadcast: operation.broadcast,
-        data: JSON.stringify(i),
-        users: users,
+
+    response.messages = operations.map((res) => {
+      response.user = res.user ? res.user: response.user;
+      return {
+        type: res.type,
+        broadcast: res.broadcast,
+        data: JSON.stringify(res.data),
+        users: res.users,
         id: 0,
-      }));
-      response.messages = [...newMessages, ...response.messages]
-    }
+      }});
   }
   return response;
 }
