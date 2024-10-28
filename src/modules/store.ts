@@ -76,9 +76,10 @@ export const store = ((defaultStore) => {
     return null;
   }
 
-  const addShips = (user: User, dameId: string, ships: Array<Ship>) => {
+  const addShips = (user: User, ships: Array<Ship>) => {
     store.games = store.games.map(game => {
-      if(game.idGame !== dameId) {
+      const gamePlayer = game.players.find(p => p.user.name === user.name);
+      if(gamePlayer === undefined) {
         return game;
       } else {
         const players = game.players.map( player => {
